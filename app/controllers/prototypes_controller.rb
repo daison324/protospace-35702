@@ -1,8 +1,8 @@
 class PrototypesController < ApplicationController
-  before_action :authenticate_user!, only: [:new, :edit, :destroy]
+  before_action :authenticate_user!, except: [:show, :index, :create]
 
-  def index
-    @prototypes = Prototype.all
+  def  index
+    @prototype = Prototype.all
   end
 
   def new
@@ -10,9 +10,9 @@ class PrototypesController < ApplicationController
   end
 
   def create
-    @prototype = Prototype.new(prototype_params)
-    if @prototype.save  
-      redirect_to root_path
+    @prototype = Prototype.create(prototype_params)
+    if @prototype.save
+      redirect_to action: :index
     else
       render :new
     end
@@ -26,23 +26,18 @@ class PrototypesController < ApplicationController
 
   def edit
     @prototype = Prototype.find(params[:id])
-    if @prototype.user.id == current_user.id
-      render :edit
-    else
-      redirect_to root_path
+    unless @prototype.user.id == current_user.id
+      redirect_to action: :index
     end
   end
 
   def update
     @prototype = Prototype.find(params[:id])
-    #prototype = Prototype.find(params[:id])
+    @prototype.update(prototype_params)
     if @prototype.update(prototype_params)
-       #prototype.update(prototype_params)
-      redirect_to prototype_path
+      redirect_to action: :show
     else
       render :edit
-      #redirect_to edit_prototype_path
-      #(#の緑はupdateの処理が@prototypeではないので、一度redirect_toでコントローラーのeditの＠prototypeを読まないと編集画面に前のデータが残らないので消えてしまう)
     end
   end
 
@@ -53,8 +48,8 @@ class PrototypesController < ApplicationController
   end
 
   private
-  def prototype_params
-    params.require(:prototype).permit(:title, :catch_copy, :consept, :image).merge(user_id: current_user.id)
-  end
 
+  def prototype_params
+    params.require(:prototype).permit(:title, :catch_copy, :concept, :image, :user).merge(user_id: current_user.id)
+  end
 end
